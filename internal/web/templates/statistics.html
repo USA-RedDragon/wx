@@ -1,0 +1,97 @@
+{{define "statistics"}}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{.Location}} Statistics</title>
+    {{- template "head"}}
+    <style>
+#statistics_widget th {
+  font-weight: normal;
+  text-align: right;
+}
+#statistics_widget .widget_title {
+  margin-bottom: 25px;
+}
+#statistics_widget .label {
+  font-size: 100%;
+}
+#statistics_widget .data {
+  text-align: right;
+  font-size: 100%;
+  padding-left: 50px;
+}
+#statistics_widget .units {
+  font-size: 100%;
+}
+#statistics_widget .timestamp {
+  color: var(--timestamp-color);
+}
+    </style>
+  </head>
+
+  <body>
+    {{template "titlebar" .}}
+
+    <div id="contents">
+      <p><a href="index.html">&#10096; Current Conditions</a></p>
+
+      <div id="widget_group">
+<div id="statistics_widget" class="widget">
+  <div class="widget_title">
+    Statistics
+  </div>
+  <div class="widget_contents">
+
+    <table>
+      <tbody>
+        <tr>
+          <td></td>
+          <td></td>
+          <th>Today</th>
+          <th class="hilo_week">Week</th>
+          <th class="hilo_month">Month</th>
+          <th class="hilo_year">Year</th>
+          <th class="hilo_rainyear">Rain Year</th>
+        </tr>
+        {{- range .Rows}}
+        <tr>
+          <td class="label">{{safe .Label}}</td>
+          <td class="units">{{.Units}}{{if .Units2}}<br/>
+            {{.Units2}}{{end}}</td>
+          {{- $kind := .Kind}}
+          {{- range .Cells}}
+          <td class="data new_row">
+            {{- if eq $kind "minmax"}}
+            {{.Max}}<br/>
+            <span class="timestamp">{{.MaxTitle}}</span><br/>
+            {{.Min}}<br/>
+            <span class="timestamp">{{.MinTitle}}</span>
+            {{- else if eq $kind "max"}}
+            {{.Max}}<br/>
+            <span class="timestamp">{{.MaxTitle}}</span>
+            {{- else if and (eq $kind "two") .MaxTitle}}
+            {{.Max}}<br/>
+            {{.Second}}<br/>
+            <span class="timestamp">{{.MaxTitle}}</span>
+            {{- else if eq $kind "two"}}
+            {{.Max}}<br/>
+            {{.Second}}
+            {{- else}}
+            {{.Max}}
+            {{- end}}
+          </td>
+          {{- end}}
+        </tr>
+        {{- end}}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+      </div>
+
+      {{template "identifier" .}}
+    </div>
+
+  </body>
+</html>
+{{end}}

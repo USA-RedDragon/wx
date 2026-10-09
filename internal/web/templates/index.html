@@ -1,0 +1,358 @@
+{{define "titlebar"}}
+<div id="title_bar">
+  <div id="title">
+    <h1 class="page_title">{{.Location}}</h1>
+    <p class="lastupdate">{{.LastUpdate}}</p>
+  </div>
+  <div id="reports">
+    Monthly Reports:
+    <select name="reports" onchange="openTabularFile(value)">
+      {{- range .Months}}
+      <option value="{{.}}">{{.}}</option>
+      {{- end}}
+      <option selected>- select month -</option>
+    </select>
+    <br/>
+    Yearly Reports:
+    <select name="reports" onchange="openTabularFile(value)">
+      {{- range .Years}}
+      <option value="{{.}}">{{.}}</option>
+      {{- end}}
+      <option selected>- select year -</option>
+    </select>
+    <br/>
+  </div>
+</div>
+{{end}}
+
+{{define "index"}}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{{.Location}}</title>
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="seasons.css"/>
+    <meta http-equiv="refresh" content="30">
+    <script src="seasons.js"></script>
+  </head>
+
+  <body>
+    {{template "titlebar" .}}
+
+    <div id="contents">
+      {{- with .Forecast}}
+      {{- if .Alerts}}
+      <details id="forecast" class="collapsable">
+        <summary>
+          <div class="widget_title" style="font-size: 110%">
+            {{if eq (len .Alerts) 1}}Alert{{else}}Alerts{{end}}<span style="font-size: 95%;">: <span style="color: grey;">{{len .Alerts}} Active</span></span><a class="widget_control" href="#">&#9830;</a></div>
+        </summary>
+        <div>
+          <table style='padding: 1em;'>
+            {{- range .Alerts}}
+            <tr style='width:100%;'><td style='text-align:center;font-size:medium;font-weight:bold;border-bottom:1pt solid LightGray;'>{{.Headline}}</td></tr>
+            <tr><td style='text-align:left;'><br>Issued: {{.Effective}}</td></tr>
+            <tr><td style='text-align:left;'>Onset: {{.Onset}}</td></tr>
+            <tr><td style='text-align:left;'>Ends: {{.Ends}}</td></tr>
+            <tr><td style='text-align:left;'>Status: {{.Status}}</td></tr>
+            <tr><td style='text-align:left;'>Severity: {{.Severity}}</td></tr>
+            <tr><td style='text-align:left;'>Certainty: {{.Certainty}}</td></tr>
+            <tr><td style='text-align:left;'><br>{{.Description}}</td></tr>
+            {{- if .Instruction}}<tr><td style='text-align:left;'><br>Instructions: {{.Instruction}}<br><br></td></tr>{{end}}
+            <tr><td style='text-align:left;'>Event: {{.Event}}</td></tr>
+            <tr><td style='text-align:left;'>Expires: {{.Expires}}</td></tr>
+            <tr><td style='text-align:left;'>Urgency: {{.Urgency}}</td></tr>
+            <tr><td style='text-align:left;'>Sender Name: {{.SenderName}}</td></tr>
+            {{- end}}
+          </table>
+        </div>
+      </details>
+      <br />
+      {{- end}}
+      {{- if .TwelveHour}}
+      <details id="forecast" class="collapsable">
+        <summary>
+          <div class="widget_title" style="font-size: 110%">
+            {{- with index .TwelveHour 0}}
+              Forecast - <span style="font-size: 95%;">{{.Name}}: <span style="color: grey;">{{.ShortForecast}}</span></span><a class="widget_control" href="#">&#9830;</a>
+            {{- end}}
+          </div>
+        </summary>
+        <div>
+          <table style='width:97%;text-align:center;border-bottom:white dotted 1px;'>
+            <tr>
+              {{- range firstN 7 .Hourly}}
+                <td style='width:14.2857%;vertical-align:bottom;'>
+                  <span style='border-bottom:1pt solid LightGray;'>{{hourLabel .StartTime}}</span>
+                </td>
+              {{- end}}
+            </tr>
+            <tr>
+              {{- range firstN 7 .Hourly}}
+                <td style='width:14.2857%;'>
+                  <img src='{{.Icon}}' alt='{{.Icon}}'>
+                </td>
+              {{- end}}
+            </tr>
+            <tr>
+              {{- range firstN 7 .Hourly}}
+                <td style='width:14.2857%;vertical-align:top;'>
+                  {{printf "%.0f" .Temperature}}&#176;F {{.TemperatureTrend}}<br>
+                  {{.ShortForecast}}
+                </td>
+              {{- end}}
+            </tr>
+          </table>
+        </div>
+        <br>
+        <div>
+          <table style='width:100%;padding-left:5em; padding-right:5em;'>
+            {{- range .TwelveHour}}
+            <tr>
+              <td>
+                <table style='width:100%;border-bottom:1pt dotted LightGray;padding:0.5em;'>
+                  <tr>
+                    <td style='width:16%;'><img src='{{.Icon}}' alt='{{.Icon}}'></td>
+                    <td style='width:30%;'>
+                      <table style='width:100%;text-align:center;'>
+                        <tr style='width:100%;'><td>
+                          <span class="{{tempClass .Temperature}}">{{template "icon-temperature"}}</span>
+                          {{printf "%.0f" .Temperature}}&#176;F {{.TemperatureTrend}}
+                        </td></tr>
+                        <tr style='width:100%;'><td>
+                          <span class="{{tempClass .Temperature}}">{{template "icon-wind"}}</span>
+                          {{.WindSpeed}} {{.WindDirection}}
+                        </td></tr>
+                      </table>
+                    </td>
+                    <td style='width:54%;'>
+                      <table style='width:100%;'>
+                        <tr style='width:100%;'><td style='text-align:center;font-size:16px;font-weight:bold;border-bottom:1px solid LightGray;'>{{.Name}}</td></tr>
+                        <tr style='font-size:14px; width:100%;'><td>{{.DetailedForecast}}</td></tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {{- end}}
+            <tr>
+              <td style='text-align:center;font-style:italic;color:Gray;'>Forecast generated {{longTime .GeneratedAt}}.</td>
+            </tr>
+          </table>
+        </div>
+      </details>
+      <br />
+      {{- end}}
+      {{- end}}
+
+      <div id="widget_group">
+<div id='current_widget' class="widget">
+  <div class="widget_title">
+    Current Conditions
+    <a class="widget_control"
+      onclick="toggle_widget('current')">&diams;</a>
+  </div>
+
+  <div class="widget_contents">
+  <table>
+    <tbody>
+      {{- range .Current}}
+      <tr>
+        <td class="label">{{.Label}}</td>
+        <td class="data">{{.Value}}</td>
+      </tr>
+      {{- end}}
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div id="sunmoon_widget" class="widget">
+  <div class="widget_title">
+    <a href="celestial.html">Celestial</a>
+    <a class="widget_control"
+       onclick="toggle_widget('sunmoon')">&diams;</a>
+  </div>
+  <div class="widget_contents">
+    <div id="celestial_summary">
+      <table class="celestial">
+        <tr><th>&#9728;</th><td></td><td></td><th>&#9789;</th><td></td></tr>
+        <tr>
+          <td class="label">Rise</td>
+          <td class="data">{{safe .Celestial.SunRise}}</td>
+          <td>&nbsp;</td>
+          <td class="label">Rise</td>
+          <td class="data">{{.Celestial.MoonRise}}</td>
+        </tr>
+        <tr>
+          <td class="label">Set</td>
+          <td class="data">{{safe .Celestial.SunSet}}</td>
+          <td>&nbsp;</td>
+          <td class="label">Set</td>
+          <td class="data">{{.Celestial.MoonSet}}</td>
+        </tr>
+        <tr>
+          <td class="label">Daylight</td>
+          <td class="data">{{.Celestial.Daylight}}</td>
+          <td>&nbsp;</td>
+          <td class="label"></td>
+          <td class="data">{{.Celestial.MoonPhase}}<br/>
+            {{.Celestial.MoonFullness}}%</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id='hilo_widget' class="widget">
+  <div class="widget_title">
+    <a href="statistics.html">Statistics</a>
+    <a class="widget_control"
+      onclick="toggle_widget('hilo')">&diams;</a>
+  </div>
+
+  <div class="widget_contents">
+  <table>
+    <tbody>
+      <tr>
+        <td></td>
+        <th>&nbsp;<br/>Today</th>
+        <th class="hilo_week">&nbsp;<br/>Week</th>
+        <th class="hilo_month">&nbsp;<br/>Month</th>
+        <th class="hilo_year">
+          <a onclick="toggle_rainyear()">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>Year</a>
+        </th>
+        <th class="hilo_rainyear">
+          <a onclick="toggle_rainyear()">Rain<br/>Year</a>
+        </th>
+        <td></td>
+      </tr>
+      {{- range .Hilo}}
+      <tr>
+        <td class="label">{{safe .Label}}</td>
+        {{- $kind := .Kind}}
+        {{- range .Cells}}
+        <td class="data new_row hilo_{{.Span}}">
+          {{- if eq $kind "minmax"}}
+          <span title="{{.MaxTitle}}">
+            {{.Max}}</span><br/>
+          <span title="{{.MinTitle}}">
+            {{.Min}}</span>
+          {{- else if eq $kind "max"}}
+          <span title="{{.MaxTitle}}">
+            {{.Max}}</span>
+          {{- else if eq $kind "two"}}
+          <span title="{{.MaxTitle}}">
+            {{.Max}}</span><br/>
+          {{.Second}}
+          {{- else}}
+          {{.Max}}
+          {{- end}}
+        </td>
+        {{- end}}
+        <td class="units">{{.Units}}{{if .Units2}}<br/>
+          {{.Units2}}{{end}}</td>
+      </tr>
+      {{- end}}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{{template "sensors" .Sensors}}
+
+<div id='about_widget' class="widget">
+  <div class="widget_title">
+    About this station
+    <a class="widget_control"
+      onclick="toggle_widget('about')">&diams;</a>
+  </div>
+  <div class="widget_contents">
+  <table>
+    {{- range .About}}
+    <tr>
+      <td class="label">{{.Label}}</td>
+      <td class="data">{{.Value}}</td>
+    </tr>
+    {{- end}}
+  </table>
+  </div>
+</div>
+
+<div id='windrose_widget' class="widget">
+  <div class="widget_title">
+    Windrose
+    <a class="widget_control"
+      onclick="toggle_widget('windrose')">&diams;</a>
+  </div>
+
+  <div class="widget_contents">
+    <img src="daywindrose.svg?nocache={{.Nocache}}" alt="Windrose" />
+  </div>
+</div>
+
+{{- if .RadarImage}}
+<div id='radar_widget' class="widget">
+  <div class="widget_title">
+    Radar
+    <a class="widget_control"
+      onclick="toggle_widget('radar')">&diams;</a>
+  </div>
+  <div class="widget_contents">
+    <a  href="{{.RadarURL}}">
+      <img src="{{.RadarImage}}" alt="Radar" />
+    </a>
+  </div>
+</div>
+{{- end}}
+
+{{- if .SatImage}}
+<div id='satellite_widget' class="widget">
+  <div class="widget_title">
+    Satellite
+    <a class="widget_control"
+      onclick="toggle_widget('satellite')">&diams;</a>
+  </div>
+  <div class="widget_contents">
+    <a href="{{.SatURL}}">
+      <img src="{{.SatImage}}" alt="Satellite" />
+    </a>
+  </div>
+</div>
+{{- end}}
+      </div>
+
+      <div id="plot_group">
+        <div id="history_widget" class="widget">
+          <div id="plot_title" class="widget_title">History:&nbsp;&nbsp;
+            <a class="button_selected" id="button_history_day"
+               onclick="choose_history('day')">Day</a>
+            <a class="button" id="button_history_week"
+               onclick="choose_history('week')">Week</a>
+            <a class="button" id="button_history_month"
+               onclick="choose_history('month')">Month</a>
+            <a class="button" id="button_history_year"
+               onclick="choose_history('year')">Year</a>
+          </div>
+          {{- $nc := .Nocache}}
+          {{- range .Periods}}
+          <div id="history_{{.Name}}" class="plot_container" style="display:none">
+            {{- range .Plots}}
+            <img src="{{.}}.svg?nocache={{$nc}}" alt="{{.}}"/>
+            {{- end}}
+          </div>
+          {{- end}}
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">
+      This station is controlled by <a href='https://github.com/USA-RedDragon/wx'>wx</a>.
+    </p>
+
+  </body>
+
+</html>
+{{end}}

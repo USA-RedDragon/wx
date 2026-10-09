@@ -1,0 +1,59 @@
+{{define "sensors"}}
+{{- if or .Connectivity .Batteries}}
+<div id='sensors_widget' class="widget">
+  <div class="widget_title">
+    <a href="telemetry.html">Sensor Status</a>
+    <a class="widget_control" onclick="toggle_widget('sensors')">&diams;</a>
+  </div>
+  <div class="widget_contents">
+  <table>
+    {{- if .Connectivity}}
+    <tr><th>Connectivity</th><th></th></tr>
+    {{- range .Connectivity}}
+    <tr>
+      <td class="label">{{.Label}}</td>
+      <td class="data">{{.Value}}</td>
+      <td class="timestamp">{{.Ago}}</td>
+    </tr>
+    {{- end}}
+    {{- end}}
+    {{- if .Batteries}}
+    <tr><th>Battery Status</th><th></th></tr>
+    {{- range .Batteries}}
+    <tr>
+      <td class="label">{{.Label}}</td>
+      <td class="data">{{if eq .Status "low"}}<span class="status_low">LOW</span>{{else if eq .Status "ok"}}<span class="status_ok">OK</span>{{else}}<span class="status_unknown">UNKNOWN</span>{{end}}</td>
+      <td class="timestamp">{{.Ago}}</td>
+    </tr>
+    {{- end}}
+    {{- end}}
+  </table>
+  </div>
+</div>
+{{- end}}
+{{end}}
+
+{{define "head"}}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="seasons.css"/>
+    <script src="seasons.js"></script>
+{{end}}
+
+{{define "identifier"}}
+<div id='identifier_widget' class="widget">
+  <div class="widget_title">
+  </div>
+  <div class="widget_contents">
+  <table>
+    {{- range .Identifier}}
+    <tr>
+      <td class="label">{{.Label}}</td>
+      <td class="data">{{.Value}}</td>
+    </tr>
+    {{- end}}
+  </table>
+  </div>
+
+</div>
+{{end}}

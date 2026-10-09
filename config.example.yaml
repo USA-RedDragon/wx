@@ -1,0 +1,61 @@
+# Sample configuration
+# Logging level for the application. One of debug, info, warn, or error
+log-level: "info"
+# HTTP server configuration
+http:
+  # Address to listen on. The default, [::], listens on all interfaces
+  bind: "[::]"
+  # Port to listen on
+  port: 8080
+# MQTT subscriber configuration
+mqtt:
+  # MQTT broker URL
+  broker: "mqtt://localhost:1883"
+  # MQTT username
+  # username: ""
+  # MQTT password
+  # password: "(secret)"
+  # MQTT client ID
+  client-id: "wx"
+  # Topic carrying mqtt-wx station packets in weewx METRICWX units
+  topic: "weather/station"
+  # Optional rtl_433 topic whose rain_mm counter is used for rain instead of the station packet
+  # rain-topic: ""
+# Weather station description
+station:
+  # Station name shown in the title bar
+  # location: ""
+  # Station latitude in degrees, north positive
+  # latitude: 0.0
+  # Station longitude in degrees, east positive
+  # longitude: 0.0
+  # Altitude of the pressure sensor in feet, used to reduce station pressure to sea level
+  # altitude-feet: 0.0
+  # Timezone used for day boundaries and display
+  timezone: "UTC"
+  # Month the rain year starts in
+  rain-year-start: 1
+  # Day the week starts on, 0 is Monday and 6 is Sunday
+  week-start: 6
+  # Archive record interval in seconds
+  archive-interval: 60
+  # Radar image URL
+  # radar-image: ""
+  # Radar link URL
+  # radar-url: ""
+  # Satellite image URL
+  # satellite-image: ""
+  # Satellite link URL
+  # satellite-url: ""
+# Archive database configuration
+database:
+  # Path to the SQLite archive database
+  path: "wx.db"
+# National Weather Service forecast and alerts
+nws:
+  # Fetch NWS forecasts and alerts
+  enabled: false
+  # User-Agent sent to api.weather.gov, which asks for a contact such as (site, email)
+  # user-agent: ""
+  # How often to refresh the forecast
+  interval: "30m"

@@ -1,0 +1,5 @@
+config.yaml
+/wx
+*.db
+*.db-wal
+*.db-shm

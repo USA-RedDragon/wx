@@ -1,0 +1,46 @@
+{{define "telemetry"}}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{.Location}} Telemetry</title>
+    {{- template "head"}}
+  </head>
+
+  <body onload="setup();">
+    {{template "titlebar" .}}
+
+    <div id="contents">
+      <p><a href="index.html">&#10096; Current Conditions</a></p>
+
+      <div id="widget_group">
+        {{template "sensors" .Sensors}}
+      </div>
+
+      <div id="plot_group">
+        <div id="history_widget" class="widget">
+          <div id="plot_title" class="widget_title">Telemetry:&nbsp;&nbsp;
+            <a class="button_selected" id="button_history_day"
+               onclick="choose_history('day')">Day</a>
+            <a class="button" id="button_history_week"
+               onclick="choose_history('week')">Week</a>
+            <a class="button" id="button_history_month"
+               onclick="choose_history('month')">Month</a>
+            <a class="button" id="button_history_year"
+               onclick="choose_history('year')">Year</a>
+          </div>
+          {{- $nc := .Nocache}}
+          {{- range .Periods}}
+          <div id="history_{{.Name}}" class="plot_container" style="display:none">
+            {{- range .Plots}}
+            <img src="{{.}}.svg?nocache={{$nc}}" alt="{{.}}"/>
+            {{- end}}
+          </div>
+          {{- end}}
+        </div>
+      </div>
+
+      {{template "identifier" .}}
+    </div>
+
+  </body>
+</html>
+{{end}}

@@ -1,0 +1,27 @@
+{{define "tabular"}}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{.Location}}</title>
+    {{- template "head"}}
+    <style>
+.tabular {
+  font-family: monospace;
+  white-space: pre;
+}
+    </style>
+  </head>
+
+  <body onload="setup();">
+    {{template "titlebar" .}}
+
+    <div id="contents">
+      <p><a href="index.html">&#10096; Current Conditions</a></p>
+      <div id="report" class="tabular"></div>
+    </div>
+
+  </body>
+  <script>
+load_file('report', 'report');
+  </script>
+</html>
+{{end}}

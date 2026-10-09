@@ -1,0 +1,149 @@
+{{define "celestial"}}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{.Location}} Celestial Details</title>
+    {{- template "head"}}
+    <style>
+#celestial_widget th {
+  font-weight: normal;
+  text-align: right;
+}
+#celestial_widget .widget_title {
+  margin-bottom: 25px;
+}
+#celestial_widget .label {
+  font-size: 100%;
+}
+#celestial_widget .data {
+  font-size: 100%;
+}
+    </style>
+  </head>
+
+  <body>
+    {{template "titlebar" .}}
+
+    <div id="contents">
+      <p><a href="index.html">&#10096; Current Conditions</a></p>
+
+      <div id="widget_group">
+{{- with .Detail}}
+<div id="celestial_widget" class="widget">
+  <div class="widget_title">
+    Celestial
+  </div>
+  <div class="widget_contents">
+    <div id="celestial_details">
+      <div class="celestial_body">
+        <table class="celestial">
+          <tr><th>&#9728; Sun</th><th></th></tr>
+          <tr>
+            <td class="label">Start civil twilight</td>
+            <td class="data">{{.CivilDawn}}</td>
+          </tr>
+          <tr>
+            <td class="label">Rise</td>
+            <td class="data">{{safe .SunRise}}</td>
+          </tr>
+          <tr>
+            <td class="label">Transit</td>
+            <td class="data">{{.SunTransit}}</td>
+          </tr>
+          <tr>
+            <td class="label">Set</td>
+            <td class="data">{{safe .SunSet}}</td>
+          </tr>
+          <tr>
+            <td class="label">End civil twilight</td>
+            <td class="data">{{.CivilDusk}}</td>
+          </tr>
+          <tr>
+            <td class="label">Azimuth</td>
+            <td class="data">{{.SunAz}}</td>
+          </tr>
+          <tr>
+            <td class="label">Altitude</td>
+            <td class="data">{{.SunAlt}}</td>
+          </tr>
+          <tr>
+            <td class="label">Right ascension</td>
+            <td class="data">{{.SunRA}}</td>
+          </tr>
+          <tr>
+            <td class="label">Declination</td>
+            <td class="data">{{.SunDec}}</td>
+          </tr>
+            <tr>
+              <td class="label">{{.FirstSeason.Label}}</td>
+              <td class="data">{{.FirstSeason.Value}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{.SecondSeason.Label}}</td>
+              <td class="data">{{.SecondSeason.Value}}</td>
+            </tr>
+          <tr>
+            <td class="label">Total daylight</td>
+            <td class="data">{{.Daylight}}<br/>{{.DaylightChange}}</td>
+          </tr>
+        </table>
+      </div>
+      <div class="celestial_body">
+        <table class="celestial">
+          <tr><th>&#9789; Moon</th><th></th></tr>
+          <tr><td class="label">&nbsp;</td><td class="data">&nbsp;</td></tr>
+          <tr>
+            <td class="label">Rise</td>
+            <td class="data">{{.MoonRise}}</td>
+          </tr>
+          <tr>
+            <td class="label">Transit</td>
+            <td class="data">{{.MoonTransit}}</td>
+          </tr>
+          <tr>
+            <td class="label">Set</td>
+            <td class="data">{{.MoonSet}}</td>
+          </tr>
+          <tr><td class="label">&nbsp;</td><td class="data">&nbsp;</td></tr>
+          <tr>
+            <td class="label">Azimuth</td>
+            <td class="data">{{.MoonAz}}</td>
+          </tr>
+          <tr>
+            <td class="label">Altitude</td>
+            <td class="data">{{.MoonAlt}}</td>
+          </tr>
+          <tr>
+            <td class="label">Right ascension</td>
+            <td class="data">{{.MoonRA}}</td>
+          </tr>
+          <tr>
+            <td class="label">Declination</td>
+            <td class="data">{{.MoonDec}}</td>
+          </tr>
+            <tr>
+              <td class="label">{{.FirstPhase.Label}}</td>
+              <td class="data">{{.FirstPhase.Value}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{.SecondPhase.Label}}</td>
+              <td class="data">{{.SecondPhase.Value}}</td>
+            </tr>
+          <tr>
+            <td class="label">Phase</td>
+            <td class="data">{{.MoonPhase}}<br/>
+              {{.MoonFullness}}% full</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{{- end}}
+      </div>
+
+      {{template "identifier" .}}
+    </div>
+
+  </body>
+</html>
+{{end}}

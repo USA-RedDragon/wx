@@ -8,6 +8,8 @@ A lightweight replacement for weewx. It subscribes to the station packets that [
 
 `index.html`, `statistics.html`, `telemetry.html`, `celestial.html` and `tabular.html` follow the weewx Seasons skin, and `NOAA/NOAA-YYYY-MM.txt` and `NOAA/NOAA-YYYY.txt` are the monthly and yearly climatological summaries. Plots are SVGs named like the Seasons PNGs (`daytempdew.svg`, `yearrain.svg`, `daywindrose.svg`). Pages and plots are rendered when requested and cached until new data arrives, so an idle station costs no CPU.
 
+`/events` is a Server-Sent Events stream. It sends `current` events with the current conditions as new station packets arrive (at most every five seconds) and `record` events for each new archive record, with a heartbeat comment every 25 seconds. The pages use it to update the current conditions, statistics and plots without a reload, and still render fully without JavaScript.
+
 ## Pressure
 
 mqtt-wx publishes station pressure. wx stores it as `pressure` and derives the same values weewx does from `station.altitude-feet`:

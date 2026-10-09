@@ -93,6 +93,7 @@ func runRoot(cmd *cobra.Command, _ []string) error {
 	}
 
 	in := ingest.New(cfg, st)
+	in.SetListener(srv)
 	if err := in.Start(ctx); err != nil {
 		cancel()
 		return fmt.Errorf("failed to start MQTT ingest: %w", err)

@@ -24,15 +24,21 @@ const (
 	maxClockSkew     = 300
 )
 
+type Listener interface {
+	Record(r store.Record)
+	Packet(ctx context.Context, ts int64, values map[string]float64)
+}
+
 type Ingest struct {
-	cfg     *config.Config
-	store   *store.Store
-	acc     *archive.Accumulator
-	rain    archive.RainTracker
-	rainMu  sync.Mutex
-	cm      *autopaho.ConnectionManager
-	nowFunc func() time.Time
-	reducer wx.PressureReducer
+	listener Listener
+	cfg      *config.Config
+	store    *store.Store
+	acc      *archive.Accumulator
+	rain     archive.RainTracker
+	rainMu   sync.Mutex
+	cm       *autopaho.ConnectionManager
+	nowFunc  func() time.Time
+	reducer  wx.PressureReducer
 }
 
 func New(cfg *config.Config, st *store.Store) *Ingest {
@@ -43,6 +49,10 @@ func New(cfg *config.Config, st *store.Store) *Ingest {
 		nowFunc: time.Now,
 		reducer: wx.PressureReducer{ElevFt: cfg.Station.AltitudeFeet},
 	}
+}
+
+func (i *Ingest) SetListener(l Listener) {
+	i.listener = l
 }
 
 func (i *Ingest) Accumulator() *archive.Accumulator {
@@ -163,6 +173,9 @@ func (i *Ingest) Handle(ctx context.Context, topic string, payload []byte) {
 		}
 		ts := i.packetTime(p.DateTime)
 		i.persist(ctx, i.acc.AddPacket(ts, p.Values))
+		if i.listener != nil {
+			i.listener.Packet(ctx, ts, p.Values)
+		}
 		if p.RainMM != nil && i.cfg.MQTT.RainTopic == "" {
 			i.addRain(ctx, ts, *p.RainMM)
 		}
@@ -195,5 +208,8 @@ func (i *Ingest) persist(ctx context.Context, recs []store.Record) {
 			continue
 		}
 		slog.Debug("archived record", "dateTime", time.Unix(r.DateTime, 0), "fields", len(r.Values))
+		if i.listener != nil {
+			i.listener.Record(r)
+		}
 	}
 }

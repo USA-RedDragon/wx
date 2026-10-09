@@ -34,6 +34,7 @@
     <link rel="stylesheet" type="text/css" href="seasons.css"/>
     <meta http-equiv="refresh" content="30">
     <script src="seasons.js"></script>
+    <script src="live.js" defer></script>
   </head>
 
   <body>
@@ -157,12 +158,7 @@
   <div class="widget_contents">
   <table>
     <tbody>
-      {{- range .Current}}
-      <tr>
-        <td class="label">{{.Label}}</td>
-        <td class="data">{{.Value}}</td>
-      </tr>
-      {{- end}}
+      {{- template "current-rows" .Current}}
     </tbody>
   </table>
   </div>

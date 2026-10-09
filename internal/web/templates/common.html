@@ -38,6 +38,7 @@
     <link rel="icon" type="image/png" href="favicon.ico" />
     <link rel="stylesheet" type="text/css" href="seasons.css"/>
     <script src="seasons.js"></script>
+    <script src="live.js" defer></script>
 {{end}}
 
 {{define "identifier"}}
@@ -56,4 +57,13 @@
   </div>
 
 </div>
+{{end}}
+
+{{define "current-rows"}}
+      {{- range .}}
+      <tr>
+        <td class="label">{{.Label}}</td>
+        <td class="data">{{.Value}}</td>
+      </tr>
+      {{- end}}
 {{end}}

@@ -20,6 +20,12 @@ import (
 
 func setup(t *testing.T) *httptest.Server {
 	t.Helper()
+	ts, _ := setupServer(t)
+	return ts
+}
+
+func setupServer(t *testing.T) (*httptest.Server, *web.Server) {
+	t.Helper()
 	cfg, err := configulator.New(config.ConfigSchema()).Default()
 	if err != nil {
 		t.Fatal(err)
@@ -48,8 +54,11 @@ func setup(t *testing.T) *httptest.Server {
 		t.Fatal(err)
 	}
 	ts := httptest.NewServer(srv.Handler())
-	t.Cleanup(ts.Close)
-	return ts
+	t.Cleanup(func() {
+		_ = srv.Stop()
+		ts.Close()
+	})
+	return ts, srv
 }
 
 func get(t *testing.T, url string) (int, string, string) {

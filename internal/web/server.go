@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/USA-RedDragon/wx/internal/config"
+	"github.com/USA-RedDragon/wx/internal/live"
 	"github.com/USA-RedDragon/wx/internal/noaa"
 	"github.com/USA-RedDragon/wx/internal/plot"
 	"github.com/USA-RedDragon/wx/internal/store"
@@ -30,9 +31,9 @@ const (
 	defTimeout   = 10 * time.Second
 	writeTimeout = 30 * time.Second
 	stopTimeout  = 5 * time.Second
-	pageMaxAge   = 30 * time.Second
+	pageMaxAge   = 0
 	noaaMaxAge   = 10 * time.Minute
-	roseMaxAge   = time.Minute
+	roseMaxAge   = 0
 	contentSVG   = "image/svg+xml"
 	contentHTML  = "text/html; charset=utf-8"
 	contentText  = "text/plain; charset=utf-8"
@@ -50,22 +51,25 @@ type cached struct {
 }
 
 type Server struct {
-	cfg     *config.Config
-	store   *store.Store
-	nws     *NWS
-	tmpl    *template.Template
-	server  *http.Server
-	version string
-	started time.Time
-	mu      sync.Mutex
-	cache   map[string]cached
-	stopped bool
+	cfg       *config.Config
+	store     *store.Store
+	nws       *NWS
+	tmpl      *template.Template
+	server    *http.Server
+	version   string
+	started   time.Time
+	mu        sync.Mutex
+	cache     map[string]cached
+	stopped   bool
+	hub       *live.Hub
+	packet    livePacket
+	heartbeat time.Duration
 }
 
 func plotMaxAge(period string) time.Duration {
 	switch period {
 	case plot.PeriodDay:
-		return time.Minute
+		return 0
 	case plot.PeriodWeek:
 		return 5 * time.Minute
 	case plot.PeriodMonth:
@@ -75,7 +79,16 @@ func plotMaxAge(period string) time.Duration {
 }
 
 func New(cfg *config.Config, st *store.Store, nws *NWS, version string) (*Server, error) {
-	s := &Server{cfg: cfg, store: st, nws: nws, version: version, started: time.Now(), cache: map[string]cached{}}
+	s := &Server{
+		cfg:       cfg,
+		store:     st,
+		nws:       nws,
+		version:   version,
+		started:   time.Now(),
+		cache:     map[string]cached{},
+		hub:       live.NewHub(maxLiveClients, clientBuffer),
+		heartbeat: heartbeatInterval,
+	}
 	funcs := template.FuncMap{
 		"safe":      func(v string) template.HTML { return template.HTML(v) }, //nolint:gosec
 		"hourLabel": func(t time.Time) string { return t.In(cfg.Station.Timezone).Format("_3 PM") },
@@ -120,6 +133,7 @@ func New(cfg *config.Config, st *store.Store, nws *NWS, version string) (*Server
 		return s.header(ctx, pc)
 	}))
 	mux.HandleFunc("GET /NOAA/{file}", s.handleNOAA)
+	mux.HandleFunc("GET /events", s.handleEvents)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /"+windRoseName+".svg", s.handleWindRose)
 	mux.HandleFunc("GET /{name}", func(w http.ResponseWriter, r *http.Request) {
@@ -337,5 +351,6 @@ func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), stopTimeout)
 	defer cancel()
 	s.stopped = true
+	s.hub.Close()
 	return s.server.Shutdown(ctx)
 }

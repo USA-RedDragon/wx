@@ -1,5 +1,5 @@
 cmd/import.go	129	0
-cmd/root.go	55	0
+cmd/root.go	56	0
 internal/almanac/almanac.go	132	129
 internal/archive/accumulator.go	106	99
 internal/archive/packet.go	34	30
@@ -11,7 +11,8 @@ internal/importer/prometheus.go	107	99
 internal/importer/stale.go	22	20
 internal/importer/weewx.go	83	73
 internal/importer/wxdb.go	18	14
-internal/ingest/ingest.go	83	28
+internal/ingest/ingest.go	88	29
+internal/live/hub.go	33	33
 internal/noaa/noaa.go	199	182
 internal/plot/data.go	104	88
 internal/plot/spec.go	31	30
@@ -19,9 +20,10 @@ internal/plot/svg.go	167	158
 internal/plot/windrose.go	81	80
 internal/store/daysum.go	217	165
 internal/store/store.go	198	159
+internal/web/events.go	74	57
 internal/web/model.go	295	242
 internal/web/nws.go	45	0
-internal/web/server.go	173	125
+internal/web/server.go	175	131
 internal/wx/obs.go	32	29
 internal/wx/units.go	57	49
 main.go	7	0

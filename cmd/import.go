@@ -26,6 +26,8 @@ const (
 	envHAToken    = "HA_TOKEN"
 	sinceExample  = "2026-09-17T00:00:00Z"
 	timeLayoutDay = "2006-01-02"
+	fetchWindow   = 24 * time.Hour
+	fetchOverlap  = time.Hour
 )
 
 var errSinceRequired = errors.New("--since is required when fetching from Prometheus or Home Assistant")
@@ -149,15 +151,7 @@ func (r *importRun) prometheus(ctx context.Context, cmd *cobra.Command) error {
 		}
 		series, name = s, "prometheus "+dir
 	case base != "":
-		since, until, err := r.window(cmd)
-		if err != nil {
-			return err
-		}
-		s, err := importer.FetchPrometheus(ctx, base, since, until)
-		if err != nil {
-			return err
-		}
-		series, name = s, "prometheus "+base
+		return r.prometheusURL(ctx, cmd, base)
 	default:
 		return nil
 	}
@@ -183,15 +177,7 @@ func (r *importRun) homeAssistant(ctx context.Context, cmd *cobra.Command) error
 		}
 		stats, name = s, "homeassistant files"
 	case base != "":
-		since, until, err := r.window(cmd)
-		if err != nil {
-			return err
-		}
-		s, err := importer.FetchHAStatistics(ctx, base, os.Getenv(envHAToken), since, until)
-		if err != nil {
-			return err
-		}
-		stats, name = s, "homeassistant "+base
+		return r.homeAssistantURL(ctx, cmd, base)
 	default:
 		return nil
 	}
@@ -200,5 +186,55 @@ func (r *importRun) homeAssistant(ctx context.Context, cmd *cobra.Command) error
 		return err
 	}
 	r.track(res)
+	return nil
+}
+
+func (r *importRun) prometheusURL(ctx context.Context, cmd *cobra.Command, base string) error {
+	since, until, err := r.window(cmd)
+	if err != nil {
+		return err
+	}
+	total := importer.Result{Source: "prometheus " + base}
+	for from := since; from.Before(until); from = from.Add(fetchWindow) {
+		to := from.Add(fetchWindow)
+		if to.After(until) {
+			to = until
+		}
+		series, err := importer.FetchPrometheus(ctx, base, from.Add(-fetchOverlap), to)
+		if err != nil {
+			return err
+		}
+		all := importer.PrometheusRecords(series, r.interval, r.cfg.Station.AltitudeFeet)
+		recs := all[:0]
+		for _, rec := range all {
+			if rec.DateTime > from.Unix() {
+				recs = append(recs, rec)
+			}
+		}
+		res, err := importer.ImportRecordsGapFill(ctx, r.st, recs, total.Source)
+		if err != nil {
+			return err
+		}
+		total.Add(res)
+	}
+	r.track(total)
+	return nil
+}
+
+func (r *importRun) homeAssistantURL(ctx context.Context, cmd *cobra.Command, base string) error {
+	since, until, err := r.window(cmd)
+	if err != nil {
+		return err
+	}
+	total := importer.Result{Source: "homeassistant " + base}
+	err = importer.StreamHAStatistics(ctx, base, os.Getenv(envHAToken), since, until, func(part map[string][]importer.HAStat) error {
+		res, err := importer.ImportRecordsGapFill(ctx, r.st, importer.HAHourRecords(part, r.cfg.Station.AltitudeFeet), total.Source)
+		total.Add(res)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	r.track(total)
 	return nil
 }

@@ -232,7 +232,7 @@ func (s *Store) RebuildDays(ctx context.Context, loc *time.Location) error {
 }
 
 func (s *Store) RebuildDaysBetween(ctx context.Context, loc *time.Location, from, to int64) error {
-	const chunkDays = 30
+	const chunkDays = 7
 	first := DayStart(from, loc)
 	last := DayStart(to, loc)
 	for day := time.Unix(first, 0).In(loc); day.Unix() <= last; day = day.AddDate(0, 0, chunkDays) {
@@ -258,13 +258,9 @@ func (s *Store) rebuildChunk(ctx context.Context, loc *time.Location, startDay, 
 	if err != nil {
 		return err
 	}
-	recs, err := s.scanRecords(rows)
-	if err != nil {
-		return err
-	}
 	acc := NewDayAccumulator(loc)
-	for _, r := range recs {
-		acc.Add(r)
+	if err := s.eachRow(rows, acc.Add); err != nil {
+		return err
 	}
 	if err := mergeDaysTx(ctx, tx, acc); err != nil {
 		return err

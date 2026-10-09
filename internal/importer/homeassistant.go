@@ -214,6 +214,6 @@ func ImportRecordsGapFill(ctx context.Context, st *store.Store, recs []store.Rec
 	if err := flush(); err != nil {
 		return res, err
 	}
-	slog.Info("imported records", "result", res.String())
+	slog.Debug("imported records", "result", res.String())
 	return res, nil
 }

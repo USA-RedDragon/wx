@@ -2,23 +2,34 @@ package importer
 
 import (
 	"context"
+	"time"
 
 	"github.com/USA-RedDragon/wx/internal/store"
 )
 
+const mergeChunk = int64(7 * 24 * time.Hour / time.Second)
+
 func ImportWxDatabase(ctx context.Context, st *store.Store, path string) (Result, error) {
+	total := Result{Source: "wx " + path}
 	src, err := store.Open(ctx, path)
 	if err != nil {
-		return Result{Source: "wx " + path}, err
+		return total, err
 	}
 	defer func() { _ = src.Close() }()
 	lo, hi, err := src.Bounds(ctx)
 	if err != nil {
-		return Result{Source: "wx " + path}, err
+		return total, err
 	}
-	recs, err := src.Range(ctx, lo-1, hi)
-	if err != nil {
-		return Result{Source: "wx " + path}, err
+	for from := lo - 1; from < hi; from += mergeChunk {
+		recs, err := src.Range(ctx, from, from+mergeChunk)
+		if err != nil {
+			return total, err
+		}
+		res, err := ImportRecordsGapFill(ctx, st, recs, total.Source)
+		total.Add(res)
+		if err != nil {
+			return total, err
+		}
 	}
-	return ImportRecordsGapFill(ctx, st, recs, "wx "+path)
+	return total, nil
 }

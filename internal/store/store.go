@@ -235,9 +235,8 @@ func (s *Store) InsertRecords(ctx context.Context, recs []Record, replace bool) 
 	return n, nil
 }
 
-func (s *Store) scanRecords(rows *sql.Rows) ([]Record, error) {
+func (s *Store) eachRow(rows *sql.Rows, fn func(Record)) error {
 	defer func() { _ = rows.Close() }()
-	var out []Record
 	n := 4 + len(s.columns)
 	vals := make([]sql.NullFloat64, len(s.columns))
 	dest := make([]any, n)
@@ -249,17 +248,23 @@ func (s *Store) scanRecords(rows *sql.Rows) ([]Record, error) {
 	}
 	for rows.Next() {
 		if err := rows.Scan(dest...); err != nil {
-			return nil, err
+			return err
 		}
-		r := Record{DateTime: dt, Interval: interval, Source: Source(source), Values: map[string]float64{}}
+		r := Record{DateTime: dt, Interval: interval, Source: Source(source), Values: make(map[string]float64, len(s.columns))}
 		for i, c := range s.columns {
 			if vals[i].Valid {
 				r.Values[c] = vals[i].Float64
 			}
 		}
-		out = append(out, r)
+		fn(r)
 	}
-	return out, rows.Err()
+	return rows.Err()
+}
+
+func (s *Store) scanRecords(rows *sql.Rows) ([]Record, error) {
+	var out []Record
+	err := s.eachRow(rows, func(r Record) { out = append(out, r) })
+	return out, err
 }
 
 func (s *Store) selectCols() string {

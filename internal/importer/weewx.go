@@ -23,6 +23,17 @@ type Result struct {
 	Last     int64
 }
 
+func (r *Result) Add(o Result) {
+	r.Read += o.Read
+	r.Inserted += o.Inserted
+	if o.First != 0 && (r.First == 0 || o.First < r.First) {
+		r.First = o.First
+	}
+	if o.Last > r.Last {
+		r.Last = o.Last
+	}
+}
+
 func (r Result) String() string {
 	return fmt.Sprintf("%s: read %d, inserted %d, %d..%d", r.Source, r.Read, r.Inserted, r.First, r.Last)
 }

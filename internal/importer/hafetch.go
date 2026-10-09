@@ -63,18 +63,32 @@ func haWebsocketURL(base string) (string, error) {
 }
 
 func FetchHAStatistics(ctx context.Context, base, token string, start, end time.Time) (map[string][]HAStat, error) {
+	out := map[string][]HAStat{}
+	err := StreamHAStatistics(ctx, base, token, start, end, func(part map[string][]HAStat) error {
+		for k, v := range part {
+			out[k] = append(out[k], v...)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func StreamHAStatistics(ctx context.Context, base, token string, start, end time.Time, fn func(map[string][]HAStat) error) error {
 	if token == "" {
-		return nil, fmt.Errorf("%s is empty", haTokenEnvHint)
+		return fmt.Errorf("%s is empty", haTokenEnvHint)
 	}
 	wsURL, err := haWebsocketURL(base)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	dialCtx, cancel := context.WithTimeout(ctx, haDialTimeout)
 	defer cancel()
 	conn, _, err := websocket.Dial(dialCtx, wsURL, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() { _ = conn.CloseNow() }()
 	conn.SetReadLimit(haReadLimit)
@@ -94,19 +108,18 @@ func FetchHAStatistics(ctx context.Context, base, token string, start, end time.
 		return conn.Write(ctx, websocket.MessageText, b)
 	}
 	if _, err := read(); err != nil {
-		return nil, err
+		return err
 	}
 	if err := write(map[string]string{"type": "auth", "access_token": token}); err != nil {
-		return nil, err
+		return err
 	}
 	auth, err := read()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if auth.Type != "auth_ok" {
-		return nil, ErrHAAuth
+		return ErrHAAuth
 	}
-	out := map[string][]HAStat{}
 	id := 0
 	for from := start; from.Before(end); from = from.Add(haChunk) {
 		to := from.Add(haChunk)
@@ -125,12 +138,12 @@ func FetchHAStatistics(ctx context.Context, base, token string, start, end time.
 			"units":         map[string]string{"temperature": "°F", wx.Pressure: "inHg", "distance": "in", "speed": "mph"},
 		}
 		if err := write(req); err != nil {
-			return nil, err
+			return err
 		}
 		for {
 			m, err := read()
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if m.ID != id {
 				continue
@@ -140,17 +153,17 @@ func FetchHAStatistics(ctx context.Context, base, token string, start, end time.
 				if m.Error != nil {
 					msg = m.Error.Message
 				}
-				return nil, fmt.Errorf("statistics_during_period: %s", msg)
+				return fmt.Errorf("statistics_during_period: %s", msg)
 			}
 			part := map[string][]HAStat{}
 			if err := json.Unmarshal(m.Result, &part); err != nil {
-				return nil, err
+				return err
 			}
-			for k, v := range part {
-				out[k] = append(out[k], v...)
+			if err := fn(part); err != nil {
+				return err
 			}
 			break
 		}
 	}
-	return out, nil
+	return nil
 }

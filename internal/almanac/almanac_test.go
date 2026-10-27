@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	lat = 35.32472
-	lng = -97.46061
+	lat = 35.32
+	lng = -97.45
 )
 
 func near(t *testing.T, name string, got time.Time, want string, loc *time.Location, tol time.Duration) {

@@ -7,7 +7,7 @@ internal/config/config.go	15	15
 internal/importer/bucket.go	67	63
 internal/importer/hafetch.go	84	67
 internal/importer/homeassistant.go	106	94
-internal/importer/prometheus.go	107	100
+internal/importer/prometheus.go	107	99
 internal/importer/stale.go	22	20
 internal/importer/weewx.go	83	73
 internal/importer/wxdb.go	18	14

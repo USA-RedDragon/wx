@@ -11,7 +11,7 @@ require (
 	github.com/soniakeys/meeus/v3 v3.0.1
 	github.com/soniakeys/unit v1.0.0
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/ztrue/shutdown v0.1.1
 	modernc.org/sqlite v1.61.1
 )

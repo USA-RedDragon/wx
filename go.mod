@@ -1,9 +1,9 @@
 module github.com/USA-RedDragon/wx
 
-go 1.27.3
+go 1.27.4
 
 require (
-	github.com/USA-RedDragon/configulator/v2 v2.5.0
+	github.com/USA-RedDragon/configulator/v2 v2.6.0
 	github.com/coder/websocket v1.8.15
 	github.com/eclipse/paho.golang v0.23.0
 	github.com/goccy/go-yaml v1.19.2
@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.1.0
 	github.com/ztrue/shutdown v0.1.1
-	modernc.org/sqlite v1.61.1
+	modernc.org/sqlite v1.62.0
 )
 
 require (
@@ -30,7 +30,7 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
-	modernc.org/libc v1.79.0 // indirect
+	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
